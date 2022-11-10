@@ -25,6 +25,36 @@ setup_admin(app)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
+TAREAS=[]
+@app.route('/todos/listar', methods=['GET'])
+def listar_tareas():
+    return jsonify(TAREAS)
+
+@app.route('/todos', methods=['POST'])
+def crear_tarea():
+    body = request.get_json()
+    nuevaTarea = {
+        "done": body["done"],
+        "label": body["label"],
+        "id": body["id"]
+    }
+    TAREAS.append(nuevaTarea)
+    return "crear tarea"
+
+@app.route('/todos/<int:id>', methods=['DELETE'])
+def eliminar_tarea(id):
+    resultado = None
+    for tarea in TAREAS:
+        if tarea["id"] == id:
+            resultado = tarea
+            break
+    if resultado != None:
+        TAREAS.remove(resultado)
+    return jsonify(TAREAS)
+
+
+
+
 # generate sitemap with all your endpoints
 @app.route('/')
 def sitemap():

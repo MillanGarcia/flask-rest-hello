@@ -52,8 +52,49 @@ def eliminar_tarea(id):
         TAREAS.remove(resultado)
     return jsonify(TAREAS)
 
+# a partir de aqui
 
 
+@app.route('/user', methods=['POST'])
+def crea_usuario():
+    body = request.get_json()
+    if body == None: # se podría usar en vez de "==", "is", para validar, pero tiene otros usos
+        return "Error, envie la información correctamente"
+    
+    email = body["email"]
+    password = body["password"]
+    #password = body.get("password"), si uso este método y no esta dentro del body, ???
+    if email is None or password is None:
+        return "Email o password incorrectos!!"
+
+    user = User(
+        email= email,
+        password = password,
+        is_active = True
+    )
+
+    db.session.add(user)#el db, viene de sql alchemy, como se ve en el archivo models.py
+    db.session.commit()#mandar la información a la base de datos
+
+    
+
+    return jsonify(user.serialize())# seria la funcion que
+
+@app.route('/user/listar', methods=['GET'])
+def listar_usuario():
+    users = User.query.all()
+    #resultado = [user.serialize()for user in users]
+    result=[]
+    for user in users:
+        result.append(user.serialize())
+    return jsonify(result)
+
+@app.route('/user/<id>', methods=['PUT'])
+def obtener_usuario():
+    user = User.query.get(id)# el .query, viene de user, que viene del archivo __init__.py, ya que user hereda de db.model
+    if user is None:
+        return "no existe el usuario con id"+str(id)
+    return jsonify(user.serialize())
 
 # generate sitemap with all your endpoints
 @app.route('/')

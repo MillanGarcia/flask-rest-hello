@@ -90,10 +90,16 @@ def listar_usuario():
     return jsonify(result)
 
 @app.route('/user/<id>', methods=['PUT'])
-def obtener_usuario():
+def obtener_usuario(id):
+    body = request.get_json()
     user = User.query.get(id)# el .query, viene de user, que viene del archivo __init__.py, ya que user hereda de db.model
+    
     if user is None:
         return "no existe el usuario con id"+str(id)
+    else:
+        user.email = body["email"]
+        db.session.add(user)#el db, viene de sql alchemy, como se ve en el archivo models.py
+    db.session.commit()#mandar la información a la base de datos
     return jsonify(user.serialize())
 
 # generate sitemap with all your endpoints

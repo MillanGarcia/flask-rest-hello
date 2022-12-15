@@ -8,7 +8,8 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Tarea
+
 #from models import Person
 
 app = Flask(__name__)
@@ -25,35 +26,68 @@ setup_admin(app)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
-TAREAS=[]
+
 @app.route('/todos/listar', methods=['GET'])
 def listar_tareas():
-    return jsonify(TAREAS)
+    tareas = Tarea.query.all()
+    #resultado = [user.serialize()for user in users]
+    result=[]
+    for tarea in tareas:
+        result.append(tarea.serialize())
+    return jsonify(result)
+    #return jsonify(TAREAS)
 
 @app.route('/todos', methods=['POST'])
 def crear_tarea():
     body = request.get_json()
-    nuevaTarea = {
-        "done": body["done"],
-        "label": body["label"],
-        "id": body["id"]
-    }
-    TAREAS.append(nuevaTarea)
-    return "crear tarea"
+    if body == None: # se podría usar en vez de "==", "is", para validar, pero tiene otros usos
+        return "Error, no esta escribiendo una tarea"
+    label = body["label"]
+    tarea = Tarea(
+        done = False,
+        label = label
+    )
 
-@app.route('/todos/<int:id>', methods=['DELETE'])
+    db.session.add(tarea)#el db, viene de sql alchemy, como se ve en el archivo models.py
+    db.session.commit()#mandar la información a la base de datos
+
+    return jsonify(tarea.serialize())# seria la funcion que
+#def crear_tarea():
+    #body = request.get_json()
+    #nuevaTarea = {
+    #    "done": body["done"],
+    #    "label": body["label"],
+    #    "user_id": body["user_id"]
+    #}
+    #TAREAS.append(nuevaTarea)
+    #return "crear tarea"
+
+@app.route('/todos/<id>', methods=['DELETE'])
 def eliminar_tarea(id):
     resultado = None
-    for tarea in TAREAS:
-        if tarea["id"] == id:
-            resultado = tarea
-            break
-    if resultado != None:
-        TAREAS.remove(resultado)
-    return jsonify(TAREAS)
+
+    tarea = Tarea.query.get(id)
+    if tarea != resultado:
+        db.session.delete(tarea)
+        db.session.commit()
+    else:
+        return "no existe la tarea seleccionada o ya fue borrada"
+    return "tarea borrada"
+
+
+#def eliminar_tarea(id):
+#    resultado = None
+#    for tarea in TAREAS:
+     #   if tarea["id"] == id:
+    #        resultado = tarea
+   #         break
+  #  if resultado != None:
+ #       TAREAS.remove(resultado)
+#    return jsonify(TAREAS)
 
 # a partir de aqui
 
+#A PARTIR DE ESTA LINEA SOLO ES PRUEBA PARA EL MANEJO DE USUARIOS, NO DE LAS TAREAS 
 
 @app.route('/user', methods=['POST'])
 def crea_usuario():

@@ -17,3 +17,20 @@ class User(db.Model):
             "email": self.email,
             # do not serialize the password, its a security breach
         }
+
+class Tarea(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    done = db.Column(db.Boolean(), unique=False, nullable=False)
+    label = db.Column(db.String(120), unique=False, nullable=False)
+   
+
+    def __repr__(self):
+        return '<Task %r>' % self.task
+
+    def serialize(self):
+        return {
+            "id":self.id,
+            "done": self.done,
+            "label": self.label,
+            # do not serialize the password, its a security breach
+        }
